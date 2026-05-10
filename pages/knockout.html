@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../styles/knockout.css">
+    <title>Document</title>
+</head>
+<body>
+
+    <!-- 1. NAVIGATION BAR (Fixed at Top) -->
+    <nav class="navbar">
+        <a href="#" class="nav-logo">Fixture Maker</a>
+        <ul class="nav-links">
+             <li><a href="./home.html">Home</a></li>
+            <li><a href="./knockout.html">Knockout</a></li>
+            <li><a href="#services">Services</a></li>
+            <li><a href="#contact">Contact</a></li>
+        </ul>
+    </nav>
+    
+    <!-- Background Hero must be beneath Navbar -->
+    <div class="background-hero"></div>
+
+    <!-- 2. CONTENT WRAPPER (Centers the Glass Container) -->
+    <div class="content-wrapper">
+        <div class="glass-container">
+            <h1 class="welcome-text" style="font-size: 2.5em; margin-bottom: 20px;">
+                Team Fixture Setup
+            </h1>
+
+            <!-- Form 1: Get Number of Teams -->
+            <form id="teamNumberForm" onsubmit="generateTeamInputs(event)">
+                <label for="numTeams">How many teams will participate?</label>
+                <input 
+                    type="number" 
+                    id="numTeams" 
+                    name="numTeams" 
+                    min="2" 
+                    required 
+                    placeholder="Enter a number (e.g., 8)"
+                    class="input-field text-center"
+                >
+                <button type="submit" class="btn w-full mt-3">
+                    Setup Teams
+                </button>
+            </form>
+
+            <!-- Dynamic Input Field Container -->
+            <form id="teamNameForm" action="./generate_fixtures.php" method="POST" style="display: none;">
+                <h2 id="teamNameHeader" class="text-xl font-bold mt-8 mb-4"></h2>
+                <div id="teamInputsContainer">
+                    <!-- Team name input fields will be inserted here by JavaScript -->
+                </div>
+                <button type="submit" class="btn w-full mt-4">
+                    Generate Fixtures
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const mainGlassContainer = document.getElementById('mainGlassContainer');
+        const setupView = document.getElementById('setupView');
+        const fixturesView = document.getElementById('fixturesView');
+        const teamNumberForm = document.getElementById('teamNumberForm');
+        const teamNameForm = document.getElementById('teamNameForm');
+        const numTeamsInput = document.getElementById('numTeams');
+        const teamInputsContainer = document.getElementById('teamInputsContainer');
+        const teamNameHeader = document.getElementById('teamNameHeader');
+        const fixturesOutput = document.getElementById('fixturesOutput');
+        
+        /**
+         * Switches the active view based on the provided viewId or URL hash.
+         */
+        function showView(viewId) {
+            // Hide all views initially
+            setupView.style.display = 'none';
+            fixturesView.style.display = 'none';
+            mainGlassContainer.classList.remove('expanded');
+            
+            if (viewId === 'setupView') {
+                setupView.style.display = 'block';
+                // Handle form visibility based on whether inputs were already generated
+                if(teamInputsContainer.innerHTML !== '') {
+                    teamNumberForm.style.display = 'none';
+                    teamNameForm.style.display = 'block';
+                } else {
+                    teamNumberForm.style.display = 'block';
+                    teamNameForm.style.display = 'none';
+                }
+            } else if (viewId === 'fixturesView') {
+                fixturesView.style.display = 'block';
+                mainGlassContainer.classList.add('expanded');
+            }
+        }
+        
+        /**
+         * Reads the URL hash and loads the appropriate view.
+         */
+        function handleRouting() {
+            const hash = window.location.hash;
+            if (hash === '#result') {
+                showView('fixturesView');
+            } else {
+                showView('setupView');
+            }
+        }
+        
+        /**
+         * Generates the dynamic input fields for team names based on user input.
+         */
+        function generateTeamInputs(event) {
+            event.preventDefault();
+            const numTeams = parseInt(numTeamsInput.value);
+            if (isNaN(numTeams) || numTeams < 2) {
+                showMessage("Please enter a valid number of teams (minimum 2).");
+                return;
+            }
+
+            teamInputsContainer.innerHTML = '';
+            teamNameHeader.textContent = `Enter Names for ${numTeams} Teams:`;
+
+            for (let i = 1; i <= numTeams; i++) {
+                const label = document.createElement('label');
+                label.setAttribute('for', `teamName${i}`);
+                label.textContent = `Team ${i} Name:`;
+
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.id = `teamName${i}`;
+                input.name = `teamNames[]`;         // <-- important: send array to server
+                input.required = true;
+                input.placeholder = `e.g., Team ${i}`;
+                input.className = 'input-field';
+
+                teamInputsContainer.appendChild(label);
+                teamInputsContainer.appendChild(input);
+            }
+
+            teamNumberForm.style.display = 'none';
+            teamNameForm.style.display = 'block';
+        }
+
+        /**
+         * Generates a random fixture schedule using the Round-Robin algorithm.
+         * @param {string[]} teams - Array of team names.
+         * @returns {Array<Array<string[]>>} Generated fixtures.
+         */
+        function generateFixtures(teams) {
+            let teamNames = [...teams];
+            
+            // 1. Shuffle the input array for randomization
+            for (let i = teamNames.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [teamNames[i], teamNames[j]] = [teamNames[j], teamNames[i]];
+            }
+
+            let numTeams = teamNames.length;
+            let isOdd = numTeams % 2 !== 0;
+
+            // If odd, add a 'BYE' team
+            if (isOdd) {
+                teamNames.push('BYE');
+                numTeams++;
+            }
+
+            const rounds = numTeams - 1;
+            const halfSize = numTeams / 2;
+            const fixedTeam = teamNames[0];
+            let rotatingTeams = teamNames.slice(1);
+            let fixtures = [];
+
+            for (let i = 0; i < rounds; i++) {
+                let currentRound = [];
+                
+                // Match fixed team (team 0) against the first rotating team
+                currentRound.push([fixedTeam, rotatingTeams[0]]);
+                
+                // Match remaining teams (inner pairings)
+                for (let j = 1; j < halfSize; j++) {
+                    const teamA = rotatingTeams[j];
+                    const teamB = rotatingTeams[numTeams - 2 - j];
+                    currentRound.push([teamA, teamB]);
+                }
+                
+                // Rotate the teams array (last element moves to the front)
+                const lastTeam = rotatingTeams.pop();
+                rotatingTeams.unshift(lastTeam);
+
+                fixtures.push(currentRound);
+            }
+            
+            return fixtures;
+        }
+
+        /**
+         * Displays the generated fixtures in the dedicated output view.
+         */
+        function displayFixtures(fixtures) {
+            let html = '';
+
+            fixtures.forEach((round, index) => {
+                html += `<h3 class="fixture-round">Round ${index + 1}</h3><div class="fixture-grid">`;
+                round.forEach(match => {
+                    const teamA = match[0];
+                    const teamB = match[1];
+                    if (teamA === 'BYE' || teamB === 'BYE') {
+                        const playingTeam = teamA === 'BYE' ? teamB : teamA;
+                        html += `<div class="fixture-match bg-gray-600"><strong>${playingTeam}</strong> (BYE)</div>`;
+                    } else {
+                        html += `<div class="fixture-match"><strong>${teamA}</strong> vs <strong>${teamB}</strong></div>`;
+                    }
+                });
+                html += `</div>`;
+            });
+
+            fixturesOutput.innerHTML = html;
+            // Redirect to the new page state (hash routing)
+            window.location.hash = './result.html'; 
+            showMessage("Fixtures generated successfully! Redirecting to results page.");
+        }
+        
+        /**
+         * Simple custom message box implementation (replaces alert()).
+         */
+        function showMessage(message, data = null) {
+            console.log(`[App Message] ${message}`);
+            if (data) {
+                console.log("Data:", data);
+            }
+            
+            const msgBox = document.createElement('div');
+            msgBox.textContent = message;
+            msgBox.className = 'fixed top-4 right-4 bg-blue-500 text-white p-4 rounded-lg shadow-xl z-50 transition-opacity duration-300';
+            document.body.appendChild(msgBox);
+
+            setTimeout(() => {
+                msgBox.style.opacity = '0';
+                setTimeout(() => msgBox.remove(), 300);
+            }, 3000);
+        }
+
+        // Initialize routing on load and whenever the hash changes
+        document.addEventListener('DOMContentLoaded', handleRouting);
+        window.addEventListener('hashchange', handleRouting);
+        
+        // Set a default hash if none is present to initialize the setup view
+        if (!window.location.hash || window.location.hash === '#') {
+            window.location.hash = './knockout.html';
+        }
+    </script>
+</body>
+</html>

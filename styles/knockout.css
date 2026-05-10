@@ -1,0 +1,196 @@
+  body {
+            margin: 0;
+            font-family: 'Inter', sans-serif;
+            color: #f0f0f0; 
+            min-height: 100vh; /* Use min-height to allow content to grow */
+            overflow-x: hidden; /* Prevent horizontal scroll */
+            /* Removed flex centering from body to allow navbar on top */
+            position: relative;
+            background-color: transparent; /* Background handled by background-hero */
+        }
+        
+        /* ----------------------- */
+        /* NAV BAR STYLES */
+        /* ----------------------- */
+       .navbar {
+    /* Use flexbox to align items horizontally */
+    display: flex;
+    /* Vertically center the items */
+    align-items: center;
+    /* Space out the logo and the links */
+    justify-content: space-between;
+    
+    background-color: #333; /* Dark background */
+    padding: 1.5rem 3rem; /* Vertical and horizontal padding */
+    color: white; /* Default text color for the container */
+}
+
+/* 3. Styling the Logo/Brand Name */
+.nav-logo {
+    color: white;
+    text-decoration: none; /* Remove underline */
+    font-size: 1.5em; /* Make the logo text larger */
+    font-weight: bold;
+}
+
+/* 4. Styling the List of Links (the <ul>) */
+.nav-links {
+    /* Remove the bullet points */
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    /* Use flexbox to arrange the list items horizontally */
+    display: flex;
+}
+
+/* 5. Styling the List Items (the <li>) */
+.nav-links li {
+    /* Add space between the links */
+    margin-left: 20px;
+}
+
+/* 6. Styling the Actual Links (the <a>) */
+.nav-links a {
+    color: white;
+    text-decoration: none; /* Remove underline */
+    padding: 10px 15px; /* Add padding for a larger click area */
+    display: block; /* Ensures padding works correctly */
+    transition: background-color 0.3s; /* Smooth color change on hover */
+}
+
+/* 7. Hover Effect */
+.nav-links a:hover {
+    background-color: #575757; /* Slightly lighter background on hover */
+    border-radius: 4px; /* Optional: adds rounded corners on hover */
+}
+
+        /* ----------------------- */
+        /* CONTENT CENTERING & BACKGROUND */
+        /* ----------------------- */
+
+        /* Animated Background */
+        .background-hero {
+            position: fixed; 
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            
+            background: linear-gradient(135deg, #6dd5ed, #2193b0, #6dd5ed); 
+            background-size: 400% 400%; 
+            animation: gradientShift 15s ease infinite; 
+            
+            filter: blur(5px); 
+            z-index: -1; 
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Wrapper for centering the glass container */
+        .content-wrapper {
+            /* Ensure wrapper takes remaining height for centering */
+            min-height: calc(100vh - 80px); /* 80px approx height of the fixed navbar */
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            /* Add padding to account for the fixed navbar */
+            padding-top: 80px; 
+            padding-bottom: 50px; /* Space at the bottom */
+            box-sizing: border-box;
+        }
+
+
+        /* Glass Container Styles */
+        .glass-container {
+            background: rgba(255, 255, 255, 0.15); 
+            border-radius: 16px; 
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1); 
+            backdrop-filter: blur(10px); 
+            -webkit-backdrop-filter: blur(10px); 
+            border: 1px solid rgba(255, 255, 255, 0.3); 
+            
+            padding: 40px;
+            text-align: center;
+            max-width: 500px;
+            box-sizing: border-box;
+        }
+
+        /* Button Styling */
+        .btn {
+            background: rgba(0, 123, 255, 0.7); 
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px; 
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s ease, transform 0.2s ease; 
+            backdrop-filter: blur(5px); 
+            -webkit-backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            text-decoration: none; /* Crucial for styled <a> tags */
+            display: inline-block;
+        }
+
+        .btn:hover {
+            background: rgba(0, 123, 255, 0.9);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 123, 255, 0.4);
+        }
+
+        /* Input Field Styling */
+        .input-field {
+            width: 100%;
+            padding: 10px;
+            margin: 8px 0 15px 0;
+            border-radius: 6px;
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            background: rgba(255, 255, 255, 0.2); 
+            color: #212529; 
+            font-size: 1em;
+            transition: background 0.3s, border-color 0.3s;
+            box-sizing: border-box;
+        }
+
+        .input-field::placeholder {
+            color: rgba(33, 37, 41, 0.6);
+        }
+
+        .input-field:focus {
+            outline: none;
+            background: rgba(255, 255, 255, 0.8); 
+            border-color: #007BFF;
+        }
+
+        /* Labels */
+        label {
+            display: block;
+            text-align: left;
+            margin-bottom: 5px;
+            font-weight: 500;
+            color: #fff;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+             .navbar {
+                padding: 1rem 1.5rem;
+             }
+            .nav-links li {
+                margin-left: 10px;
+            }
+            .glass-container {
+                padding: 20px;
+                max-width: 95%;
+            }
+            .welcome-text {
+                font-size: 2em !important;
+            }
+        }
